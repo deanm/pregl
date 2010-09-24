@@ -43,9 +43,9 @@ var PreGL = (function() {
   }
 
   // Linear interpolation on the line along points (0, |a|) and (1, |b|).  The
-  // position |d| is the x coordinate, where 0 is |a| and 1 is |b|.
-  function lerp(a, b, d) {
-    return a + (b-a)*d;
+  // position |t| is the x coordinate, where 0 is |a| and 1 is |b|.
+  function lerp(a, b, t) {
+    return a + (b-a)*t;
   }
 
   // A class representing a 3 dimensional point and/or vector.  There isn't a
@@ -131,16 +131,25 @@ var PreGL = (function() {
     return this;
   };
 
+  // Interpolate between this and another Vec3 |b|, based on |t|.
+  Vec3.prototype.lerp = function(b, t) {
+    this.x = this.x + (b.x-this.x)*t;
+    this.y = this.y + (b.y-this.y)*t;
+    this.z = this.z + (b.z-this.z)*t;
+
+    return this;
+  };
+
   // Magnitude (length).
-  Vec3.prototype.length = function(s) {
-    var ax = a.x, ay = a.y, az = a.z;
-    return Math.sqrt(ax * ax + ay * ay + az * az);
+  Vec3.prototype.length = function() {
+    var x = this.x, y = this.y, z = this.z;
+    return Math.sqrt(x*x + y*y + z*z);
   };
 
   // Magnitude squared.
-  Vec3.prototype.lengthSquared = function(s) {
-    var ax = a.x, ay = a.y, az = a.z;
-    return ax * ax + ay * ay + az * az;
+  Vec3.prototype.lengthSquared = function() {
+    var x = this.x, y = this.y, z = this.z;
+    return x*x + y*y + z*z;
   };
 
   // Normalize, scaling so the magnitude is 1.  Invalid for a zero vector.
@@ -438,18 +447,18 @@ var PreGL = (function() {
   // Multiply Vec3 |v| by the current matrix, returning a Vec3 of this * v.
   Mat4.prototype.multVec3 = function(v) {
     var x = v.x, y = v.y, z = v.z;
-    return new Vec3(m.a14 + m.a11*x + m.a12*y + m.a13*z,
-                    m.a24 + m.a21*x + m.a22*y + m.a23*z,
-                    m.a34 + m.a31*x + m.a32*y + m.a33*z);
+    return new Vec3(this.a14 + this.a11*x + this.a12*y + this.a13*z,
+                    this.a24 + this.a21*x + this.a22*y + this.a23*z,
+                    this.a34 + this.a31*x + this.a32*y + this.a33*z);
   };
   
   // Multiply Vec4 |v| by the current matrix, returning a Vec4 of this * v.
   Mat4.prototype.multVec4 = function(v) {
     var x = v.x, y = v.y, z = v.z, w = v.w;
-    return new Vec4(m.a14*w + m.a11*x + m.a12*y + m.a13*z,
-                    m.a24*w + m.a21*x + m.a22*y + m.a23*z,
-                    m.a34*w + m.a31*x + m.a32*y + m.a33*z,
-                    m.a44*w + m.a41*x + m.a42*y + m.a43*z);
+    return new Vec4(this.a14*w + this.a11*x + this.a12*y + this.a13*z,
+                    this.a24*w + this.a21*x + this.a22*y + this.a23*z,
+                    this.a34*w + this.a31*x + this.a32*y + this.a33*z,
+                    this.a44*w + this.a41*x + this.a42*y + this.a43*z);
   };
 
   Mat4.prototype.dup = function() {
@@ -711,8 +720,8 @@ var PreGL = (function() {
   //         -- -- -- 
   //         X  ->
   //
-  function makeTristripGrid2D(start_x, end_x, num_columns,
-                              start_y, end_y, num_rows) {
+  function makeTristripGrid2D(start_y, end_y, num_rows,
+                              start_x, end_x, num_columns) {
     // Every row takes 2 points per cell, plus an extra point at the end.
     // The first row takes an additional point.  Every point is 2 components.
     var fa = new Float32Array((num_columns * 4 + 2) * num_rows + 2);
@@ -737,7 +746,6 @@ var PreGL = (function() {
       // Swap the direction, we zig zag every row.
       var x0 = (i & 1) === 0 ? start_x : end_x;
       var x_step = (i & 1) === 0 ? pos_x_step : neg_x_step;
-
 
       // For the first row, we have to emit an extra point, the first point.
       if (i === 0) { fa[k++] = y0; fa[k++] = x0; }
