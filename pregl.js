@@ -366,7 +366,7 @@ var PreGL = (function() {
   // ratio, and the z near and far planes.
   Mat4.prototype.perspective = function(fovy, aspect, znear, zfar) {
     // This could also be done reusing the frustum calculation:
-    // var ymax = znear * Math.tan(fovy * Math.PI / 360.0);
+    // var ymax = znear * Math.tan(fovy * kPI / 360.0);
     // var ymin = -ymax;
     //
     // var xmin = ymin * aspect;
@@ -374,7 +374,7 @@ var PreGL = (function() {
     //
     // return makeFrustumAffine(xmin, xmax, ymin, ymax, znear, zfar);
 
-    var f = 1.0 / Math.tan(fovy * Math.PI / 360.0);
+    var f = 1.0 / Math.tan(fovy * kPI / 360.0);
     this.mult4x4(
         f/aspect, 0,                         0,                         0,
                0, f,                         0,                         0,
