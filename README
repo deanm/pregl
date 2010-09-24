@@ -1,0 +1,2 @@
+PreGL is a graphics math and WebGL library.  It is not an abstraction layer but
+a library useful for doing JavaScript graphics or WebGL programming.
