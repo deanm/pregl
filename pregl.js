@@ -37,9 +37,9 @@ var PreGL = (function() {
     return b;
   }
 
-  // Keep c >= a && c <= b.  This differs from GLSL argument order.
-  function clamp(a, b, c) {
-    return min(b, max(a, c));
+  // Keep the value |v| in the range vmin .. vmax.  This matches GLSL clamp().
+  function clamp(v, vmin, vmax) {
+    return min(vmax, max(vmin, v));
   }
 
   // Linear interpolation on the line along points (0, |a|) and (1, |b|).  The
