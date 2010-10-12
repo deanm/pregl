@@ -662,6 +662,35 @@ var PreGL = (function() {
         document.getElementById(fname).innerHTML);
   }
 
+  // Given a context object |ctx|, return a copy with the functions wrapped
+  // to call getError() after every call, and throw an exception on errors.
+  function webGLwrappedContextWithErrorChecks(ctx) {
+    var gl = { };
+    for (key in ctx) {
+      var val = ctx[key];
+      if (typeof(val) === 'function') {
+        gl[key] = (function(key, val) {
+          return function() {
+            var res = val.apply(ctx, arguments);
+            var errors = [ ];
+            while (true) {
+              var error = ctx.getError();
+              if (error === ctx.NO_ERROR)
+                break;
+              errors.push(error);
+            }
+            if (errors.length !== 0)
+              throw "Error in " + key + ": " + errors.join(' ');
+            return res;
+          };
+        })(key, val);
+      } else {
+        gl[key] = val;
+      }
+    }
+    return gl;
+  }
+
   function MagicProgram(gl, program) {
     this.gl = gl;
     this.program = program;
@@ -768,6 +797,7 @@ var PreGL = (function() {
       createAndCompilerShader: webGLcreateAndCompilerShader,
       createProgramFromShaderSources: webGLcreateProgramFromShaderSources,
       createProgramFromScriptElements: webGLcreateProgramFromScriptElements,
+      wrappedContextWithErrorChecks: webGLwrappedContextWithErrorChecks,
       MagicProgram: MagicProgram
     },
     Tess: {
