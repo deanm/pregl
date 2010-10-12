@@ -787,3 +787,7 @@ var PreGL = (function() {
     Mat4: Mat4
   };
 })();
+
+try {  // Export via commonjs.
+  for (name in PreGL) exports[name] = PreGL[name];
+} catch(ex) { }
