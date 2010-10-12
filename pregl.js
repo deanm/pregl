@@ -695,6 +695,10 @@ var PreGL = (function() {
     this.gl = gl;
     this.program = program;
 
+    this.useProgram = function() {
+      gl.useProgram(program);
+    };
+
     function makeSetter(type, loc) {
       switch (type) {
         case gl.FLOAT:
