@@ -200,14 +200,17 @@ var PreGL = (function() {
   // Most operations return this to support chaining.
   //
   // It's common to use toFloat32Array to get a Float32Array in OpenGL (column
-  // major) memory ordering.
+  // major) memory ordering.  NOTE: The code tries to be explicit about whether
+  // things are row major or column major, but remember that GLSL works in
+  // column major ordering, and PreGL generally uses row major ordering.
   function Mat4() {
     this.reset();
   }
 
   // Set the full 16 elements of the 4x4 matrix, arguments in row major order.
-  Mat4.prototype.set4x4 = function(a11, a12, a13, a14, a21, a22, a23, a24,
-                                   a31, a32, a33, a34, a41, a42, a43, a44) {
+  // The elements are specified in row major order.  TODO(deanm): set4x4c.
+  Mat4.prototype.set4x4r = function(a11, a12, a13, a14, a21, a22, a23, a24,
+                                    a31, a32, a33, a34, a41, a42, a43, a44) {
     this.a11 = a11; this.a12 = a12; this.a13 = a13; this.a14 = a14;
     this.a21 = a21; this.a22 = a22; this.a23 = a23; this.a24 = a24;
     this.a31 = a31; this.a32 = a32; this.a33 = a33; this.a34 = a34;
@@ -218,10 +221,10 @@ var PreGL = (function() {
 
   // Reset the transform to the identity matrix.
   Mat4.prototype.reset = function() {
-    this.set4x4(1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1);
+    this.set4x4r(1, 0, 0, 0,
+                 0, 1, 0, 0,
+                 0, 0, 1, 0,
+                 0, 0, 0, 1);
 
     return this;
   };
@@ -264,9 +267,10 @@ var PreGL = (function() {
 
   // Multiply the current matrix by 16 elements that would compose a Mat4
   // object, but saving on creating the object.  this = this * b.
+  // The elements are specific in row major order.  TODO(deanm): mult4x4c.
   // TODO(deanm): It's a shame to duplicate the multiplication code.
-  Mat4.prototype.mult4x4 = function(b11, b12, b13, b14, b21, b22, b23, b24,
-                                    b31, b32, b33, b34, b41, b42, b43, b44) {
+  Mat4.prototype.mult4x4r = function(b11, b12, b13, b14, b21, b22, b23, b24,
+                                     b31, b32, b33, b34, b41, b42, b43, b44) {
     var a11 = this.a11, a12 = this.a12, a13 = this.a13, a14 = this.a14,
         a21 = this.a21, a22 = this.a22, a23 = this.a23, a24 = this.a24,
         a31 = this.a31, a32 = this.a32, a33 = this.a33, a34 = this.a34,
@@ -303,7 +307,7 @@ var PreGL = (function() {
     // http://www.cs.rutgers.edu/~decarlo/428/gl_man/rotate.html
     var s = Math.sin(theta);
     var c = Math.cos(theta);
-    this.mult4x4(
+    this.mult4x4r(
         x*x*(1-c)+c, x*y*(1-c)-z*s, x*z*(1-c)+y*s, 0,
       y*x*(1-c)+z*s,   y*y*(1-c)+c, y*z*(1-c)-x*s, 0,
       x*z*(1-c)-y*s, y*z*(1-c)+x*s,   z*z*(1-c)+c, 0,
@@ -315,10 +319,10 @@ var PreGL = (function() {
   // Multiply by a translation of x, y, and z.
   Mat4.prototype.translate = function(dx, dy, dz) {
     // TODO(deanm): Special case the multiply since most goes unchanged.
-    this.mult4x4(1, 0, 0, dx,
-                 0, 1, 0, dy,
-                 0, 0, 1, dz,
-                 0, 0, 0,  1);
+    this.mult4x4r(1, 0, 0, dx,
+                  0, 1, 0, dy,
+                  0, 0, 1, dz,
+                  0, 0, 0,  1);
 
     return this;
   };
@@ -326,10 +330,10 @@ var PreGL = (function() {
   // Multiply by a scale of x, y, and z.
   Mat4.prototype.scale = function(sx, sy, sz) {
     // TODO(deanm): Special case the multiply since most goes unchanged.
-    this.mult4x4(sx,  0,  0, 0,
-                  0, sy,  0, 0,
-                  0,  0, sz, 0,
-                  0,  0,  0, 1);
+    this.mult4x4r(sx,  0,  0, 0,
+                   0, sy,  0, 0,
+                   0,  0, sz, 0,
+                   0,  0,  0, 1);
 
     return this;
   };
@@ -341,10 +345,10 @@ var PreGL = (function() {
     var y = z.dup().cross(x).normalize();
     // The new axis basis is formed as row vectors since we are transforming
     // the coordinate system (alias not alibi).
-    this.mult4x4(x.x, x.y, x.z, 0,
-                 y.x, y.y, y.z, 0,
-                 z.x, z.y, z.z, 0,
-                   0,   0,   0, 1);
+    this.mult4x4r(x.x, x.y, x.z, 0,
+                  y.x, y.y, y.z, 0,
+                  z.x, z.y, z.z, 0,
+                    0,   0,   0, 1);
     this.translate(-ex, -ey, -ez);
 
     return this;
@@ -353,7 +357,7 @@ var PreGL = (function() {
   // Multiply by a frustum matrix computed from left, right, bottom, top,
   // near, and far.
   Mat4.prototype.frustum = function(l, r, b, t, n, f) {
-    this.mult4x4(
+    this.mult4x4r(
         (n+n)/(r-l),           0, (r+l)/(r-l),             0,
                   0, (n+n)/(t-b), (t+b)/(t-b),             0,
                   0,           0, (f+n)/(n-f), (2*f*n)/(n-f),
@@ -375,7 +379,7 @@ var PreGL = (function() {
     // return makeFrustumAffine(xmin, xmax, ymin, ymax, znear, zfar);
 
     var f = 1.0 / Math.tan(fovy * kPI / 360.0);
-    this.mult4x4(
+    this.mult4x4r(
         f/aspect, 0,                         0,                         0,
                0, f,                         0,                         0,
                0, 0, (zfar+znear)/(znear-zfar), 2*znear*zfar/(znear-zfar),
@@ -463,10 +467,10 @@ var PreGL = (function() {
 
   Mat4.prototype.dup = function() {
     var m = new Mat4();  // TODO(deanm): This could be better.
-    m.set4x4(this.a11, this.a12, this.a13, this.a14,
-             this.a21, this.a22, this.a23, this.a24,
-             this.a31, this.a32, this.a33, this.a34,
-             this.a41, this.a42, this.a43, this.a44);
+    m.set4x4r(this.a11, this.a12, this.a13, this.a14,
+              this.a21, this.a22, this.a23, this.a24,
+              this.a31, this.a32, this.a33, this.a34,
+              this.a41, this.a42, this.a43, this.a44);
     return m;
   };
 
