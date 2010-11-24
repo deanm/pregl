@@ -705,10 +705,26 @@ var PreGL = (function() {
 
     function makeSetter(type, loc) {
       switch (type) {
+        case gl.BOOL:  // NOTE: bool could be set with 1i or 1f.
+        case gl.INT:
+        case gl.SAMPLER_2D:
+        case gl.SAMPLER_CUBE:
+          return function(value) {
+            gl.uniform1i(loc, value);
+            return this;
+          };
         case gl.FLOAT:
           return function(value) {
             gl.uniform1f(loc, value);
             return this;
+          };
+        case gl.FLOAT_VEC3:
+          return function(v) {
+            gl.uniform3f(loc, v.x, v.y, v.z);
+          };
+        case gl.FLOAT_VEC4:
+          return function(v) {
+            gl.uniform4f(loc, v.x, v.y, v.z, v.w);
           };
         case gl.FLOAT_MAT4:
           return function(mat4) {
