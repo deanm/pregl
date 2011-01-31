@@ -191,6 +191,10 @@ var PreGL = (function() {
     return new Vec3(this.x, this.y, this.z);
   };
 
+  Vec3.prototype.debugString = function() {
+    return 'x: ' + this.x + ' y: ' + this.y + ' z: ' + this.z;
+  };
+
   // Vec4 is basically just a holder and allows you to convert to a Vec3 and
   // drop the w component.
   function Vec4(x, y, z, w) {
