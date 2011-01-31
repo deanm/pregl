@@ -55,9 +55,10 @@ var PreGL = (function() {
   // The class is designed without accessors or individual mutators, you should
   // access the x, y, and z values directly on the object.
   //
-  // Almost all operations happen in place, writing to the current object.  If
-  // you want a copy, you can call dup().  Most methods return this to support
-  // chaining.
+  // Almost all of the core operations happen in place, writing to the current
+  // object.  If you want a copy, you can call dup().  For convenience, many
+  // operations have a passed-tense version that returns a new object.  Most
+  // methods return this to support chaining.
   function Vec3(x, y, z) {
     this.x = x; this.y = y; this.z = z;
   }
@@ -105,9 +106,19 @@ var PreGL = (function() {
     return this;
   };
 
+  Vec3.prototype.added2 = function(a, b) {
+    return new Vec3(a.x + b.x,
+                    a.y + b.y,
+                    a.z + b.z);
+  };
+
   // Add a Vec3, this = this + b.
   Vec3.prototype.add = function(b) {
     return this.add2(this, b);
+  };
+
+  Vec3.prototype.added = function(b) {
+    return this.added2(this, b);
   };
 
   // Subtract two Vec3s, this = a - b.
@@ -119,9 +130,19 @@ var PreGL = (function() {
     return this;
   };
 
+  Vec3.prototype.subbed2 = function(a, b) {
+    return new Vec3(a.x - b.x,
+                    a.y - b.y,
+                    a.z - b.z);
+  };
+
   // Subtract another Vec3, this = this - b.
   Vec3.prototype.sub = function(b) {
     return this.sub2(this, b);
+  };
+
+  Vec3.prototype.subbed = function(b) {
+    return this.subbed2(this, b);
   };
 
   // Multiply by a scalar.
@@ -129,6 +150,10 @@ var PreGL = (function() {
     this.x *= s; this.y *= s; this.z *= s;
 
     return this;
+  };
+
+  Vec3.prototype.scaled = function(s) {
+    return new Vec3(this.x * s, this.y * s, this.z * s);
   };
 
   // Interpolate between this and another Vec3 |b|, based on |t|.
@@ -156,6 +181,11 @@ var PreGL = (function() {
   Vec3.prototype.normalize = function() {
     return this.scale(1/this.length());
   };
+
+  Vec3.prototype.normalized = function() {
+    return this.dup().normalize();
+  };
+
 
   Vec3.prototype.dup = function() {
     return new Vec3(this.x, this.y, this.z);
