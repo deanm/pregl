@@ -752,6 +752,10 @@ var PreGL = (function() {
             gl.uniform1f(loc, value);
             return this;
           };
+        case gl.FLOAT_VEC2:
+          return function(v) {
+            gl.uniform2f(loc, v.x, v.y);
+          };
         case gl.FLOAT_VEC3:
           return function(v) {
             gl.uniform3f(loc, v.x, v.y, v.z);
