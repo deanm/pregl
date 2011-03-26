@@ -422,6 +422,16 @@ var PreGL = (function() {
     return this;
   };
 
+  // Multiply by a orthographic matrix, computed from the clipping planes.
+  Mat4.prototype.ortho = function(l, r, b, t, n, f) {
+    this.mult4x4r(2/(r-l),        0,        0,  (r+l)/(l-r),
+                        0,  2/(t-b),        0,  (t+b)/(b-t),
+                        0,        0,  2/(n-f),  (f+n)/(n-f),
+                        0,        0,        0,            1);
+
+    return this;
+  };
+
   // Invert the matrix.  The matrix must be invertable.
   Mat4.prototype.invert = function() {
     // Based on the math at:
